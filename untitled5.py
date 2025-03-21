@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import streamlit as st
 import pandas as pd
 import math
@@ -64,10 +65,10 @@ def process_shipments(shipments, stock, master):
 def convert_df_to_excel(df):
     output = BytesIO()
     writer = pd.ExcelWriter(output, engine='openpyxl')
-    df.to_excel(writer, index=False, sheet_name='Sheet1')
-    writer.save()
-    processed_data = output.getvalue()
-    return processed_data
+    df.to_excel(writer, index=False, sheet_name='Replenishment Plan')
+    writer.close()  # Correct method to close the writer
+    output.seek(0)  # Move to the beginning of the BytesIO object
+    return output
 
 def main():
     st.title("Replenishment Plan Generator")
@@ -89,25 +90,26 @@ def main():
             st.write("Replenishment Plan")
             st.dataframe(result_df)
 
-            # Allow users to download the result as XLS
+            # Convert dataframe to Excel
             excel_data = convert_df_to_excel(result_df)
+            
+            # Provide a download button for the Excel file
             st.download_button(
-                label="Download Replenishment Plan as XLS",
+                label="Download Replenishment Plan as Excel",
                 data=excel_data,
-                file_name='replenishment_plan.xlsx',
-                mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                file_name="replenishment_plan.xlsx",
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             )
 
             st.write("Updated Stock")
             st.dataframe(updated_stock)
 
-            # Download the updated stock as XLS
-            stock_excel = convert_df_to_excel(updated_stock)
+            stock_csv = updated_stock.to_csv(index=False).encode('utf-8')
             st.download_button(
-                label="Download Updated Stock as XLS",
-                data=stock_excel,
-                file_name='updated_stock.xlsx',
-                mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                label="Download Updated Stock as CSV",
+                data=stock_csv,
+                file_name='updated_stock.csv',
+                mime='text/csv',
             )
         else:
             st.write("No replenishment needed.")
